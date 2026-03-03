@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visszaszámláló</title>
+    <style>
+        /* Alapvető beállítások és sötét téma */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #252525;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            /* Hogy egyértelmű legyen mobilon, hogy bárhova lehet kattintani/érinteni */
+            cursor: pointer; 
+        }
+
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover; /* Kitölti a teljes képernyőt, levágja a felesleget */
+            z-index: -1; /* A tartalom mögé teszi */
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        /* A visszaszámláló dobozok elrendezése */
+        .countdown {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap; /* Mobilon több sorba töri, ha nem fér ki */
+            justify-content: center;
+        }
+
+        .time-box {
+            background: #e56851;
+            padding: 50px;
+            border-radius: 10px;
+            min-width: 80px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .time-box span {
+            display: block;
+            font-size: 7rem;
+            font-weight: 750;
+            color: #ffffff
+        }
+
+        .time-box .label {
+            font-size: 1.2rem;
+            color: #252525;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .footer {
+            font-size: 1rem;
+            color: #ebebeb;
+            margin-top: 100px;
+        }
+
+        /* Mobil nézet finomhangolása */
+        @media (max-width: 600px) {
+            .time-box span { font-size: 2.5rem; }
+            .time-box { min-width: 65px; padding: 15px; }
+            .title { font-size: 2.5rem; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <video autoplay muted loop playsinline id="bg-video">
+        <source src="hatter.mp4" type="video/mp4">
+    </video>
+
+    <div class="title">A legfontosabb visszamámlálás</div>
+
+    <div class="countdown" id="countdown">
+        <div class="time-box"><span id="days">00</span><div class="label">Nap</div></div>
+        <div class="time-box"><span id="hours">00</span><div class="label">Óra</div></div>
+        <div class="time-box"><span id="minutes">00</span><div class="label">Perc</div></div>
+        <div class="time-box"><span id="seconds">00</span><div class="label">Másodperc</div></div>
+    </div>
+
+    <div class="footer"><b>Kattints!</b> <br>powered by KO</div>
+
+    <audio id="bg-music" autoplay loop>
+        <source src="tisza_jingle.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // --- 1. LÉPÉS: ÁLLÍTSD BE A CÉLDÁTUMOT ---
+        const targetDate = new Date("2026-04-12T23:59:59+01:00").getTime();
+
+        // Visszaszámláló logika (másodpercenként frissül)
+        const timer = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            // Ha lejárt az idő
+            if (distance < 0) {
+                clearInterval(timer);
+                document.getElementById("countdown").innerHTML = "<h2>Az időd lejárt OV! 🥳</h2>";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerText = days.toString().padStart(2, '0');
+            document.getElementById("hours").innerText = hours.toString().padStart(2, '0');
+            document.getElementById("minutes").innerText = minutes.toString().padStart(2, '0');
+            document.getElementById("seconds").innerText = seconds.toString().padStart(2, '0');
+        }, 1000);
+
+        // --- ZENE KEZELÉSE (Autoplay trükk) ---
+        const bgMusic = document.getElementById("bg-music");
+
+        // Bármilyen kattintás vagy képernyő érintés esetén elindítjuk a zenét, 
+        // ha a böngésző esetleg blokkolta volna az automatikus indulást.
+        const playMusic = () => {
+            bgMusic.play().catch(error => {
+                console.log("A böngésző blokkolta a lejátszást, amíg a felhasználó nem interaktál az oldallal.");
+            });
+            // Miután egyszer elindult, levesszük az eseményfigyelőket, hogy ne fusson le feleslegesen
+            document.removeEventListener('click', playMusic);
+            document.removeEventListener('touchstart', playMusic);
+        };
+
+        // Figyeljük a kattintást és az érintést is
+        document.addEventListener('click', playMusic);
+        document.addEventListener('touchstart', playMusic);
+
+    </script>
+</body>
+</html>
